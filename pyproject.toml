@@ -1,11 +1,11 @@
 [project]
 name = "kompress-tokens"
-version = "0.1.0"
+version = "0.2.0"
 requires-python = ">=3.10"
-description = "ML token compression for markdown via Kompress ONNX INT8 (CPU-only). Preserves frontmatter and fenced code blocks."
+description = "ML token compression + caveman LLM rewrite for markdown. Preserves frontmatter and code blocks."
 readme = "README.md"
 license = { text = "Apache-2.0" }
-keywords = ["compression", "llm", "token", "markdown", "kompress", "onnx"]
+keywords = ["compression", "llm", "token", "markdown", "kompress", "caveman", "onnx"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -19,11 +19,16 @@ dependencies = [
     "transformers>=4.40",
 ]
 
+[project.optional-dependencies]
+anthropic = ["anthropic>=0.40"]
+openai    = ["openai>=1.0"]
+all       = ["anthropic>=0.40", "openai>=1.0"]
+
 [project.scripts]
 kompress_tokens = "kompress_tokens.__main__:main"
 
 [project.urls]
-Homepage = "https://github.com/philippeprados/kompress-tokens"
+Homepage   = "https://github.com/philippeprados/kompress-tokens"
 Repository = "https://github.com/philippeprados/kompress-tokens"
 
 [build-system]
@@ -32,4 +37,3 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/kompress_tokens"]
-
