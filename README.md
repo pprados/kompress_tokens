@@ -1,13 +1,52 @@
 # kompress-tokens
 
-Two complementary compression strategies for markdown text:
+Compress Claude Code config files (AGENTS.md, CLAUDE.md, skills, etc.) to reduce token usage in session context.
 
-| Strategy | Engine | Requires |
-|----------|--------|----------|
-| **caveman** | LLM rewrite (any backend) | API key or CLI |
-| **kompress** | Kompress ONNX INT8 ML model | `onnxruntime` |
+## Purpose
+
+Large CLAUDE.md or AGENTS.md files consume tokens inefficiently. kompress-tokens applies aggressive compression while preserving structure and semantics, typically achieving 60-75% token reduction. Output remains semantically valid for injection into `CLAUDE.md` or tools.
+
+## Compression Strategies
+
+Two complementary engines:
+
+| Strategy | Engine | Requires | Reduction |
+|----------|--------|----------|-----------|
+| **caveman** | LLM rewrite (any backend) | API key or CLI | 30-75% (by level) |
+| **kompress** | Kompress ONNX INT8 ML model | `onnxruntime` | 40-50% |
+| **combined** | caveman → kompress pipeline | Both | 60-75%+ |
 
 Frontmatter (`---`) and fenced code blocks (` ``` `) are always preserved unchanged.
+
+## Example: Jinja2 Template with Includes
+
+Compose large config files from modular pieces using Jinja2 includes, then compress the merged result:
+
+**AGENTS.template.md** (template with includes):
+```markdown
+{% include 'thinking_rules.md' %}
+{% include 'workflow.md' %}
+{% include 'rtk_guide.md' %}
+```
+
+**thinking_rules.md, workflow.md, rtk_guide.md** (modular config pieces)
+
+**Compression command:**
+```bash
+# Render Jinja2 + apply caveman ultra compression + kompress
+kompress_tokens --jinja AGENTS.template.md AGENTS.md
+
+# Or via Python API
+from kompress_tokens import compress_template
+result = compress_template("AGENTS.template.md", level="ultra")
+```
+
+**Result:** AGENTS.md with all includes merged and compressed to ~60-75% of original size.
+
+**Batch mode** (compress all *.template.md in directory):
+```bash
+kompress_tokens --batch config/ --jinja
+```
 
 ## Install
 
@@ -62,9 +101,6 @@ kompress_tokens --threshold 0.3 input.md output.md
 | `lite` | Drop filler, keep articles/full sentences | ~30-40% |
 | `full` | Drop articles, fragments OK, short synonyms | ~65% |
 | `ultra` | Max compression, arrows (->), abbreviations | ~75%+ |
-| `wenyan-lite` | Semi-classical Chinese | ~40-50% |
-| `wenyan-full` | Full 文言文 | ~80-90% |
-| `wenyan-ultra` | Maximum classical Chinese | highest |
 
 ## Python API
 
