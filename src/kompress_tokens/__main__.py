@@ -84,6 +84,7 @@ def process_batch(
     threshold: float = 0.5,
     agent: str = "auto",
     model: str = None,
+    in_place: bool = False,
 ) -> None:
     """Process templates in batch with dependency analysis."""
     from ._dependencies import build_dependency_graph, topological_sort, inject_dependencies
@@ -148,11 +149,22 @@ def process_batch(
             results[template_file] = compressed
 
             # Write output
-            output_file = template_file.replace('.template.md', '.md')
-            output_path = output_dir / output_file
-            output_path.write_text(compressed)
-
-            print(f"✓ → {output_file}")
+            if in_place:
+                # In-place: replace original template with compressed version
+                path.write_text(compressed)
+                print(f"✓ {template_file} (in-place)")
+            else:
+                # Default: backup original as .orig, write compressed as .md
+                output_file = template_file.replace('.template.md', '.md')
+                output_path = output_dir / output_file
+                orig_path = output_path.with_suffix('.md.orig')
+                if not orig_path.exists():
+                    output_path.write_text(compressed)
+                    orig_path.write_text(path.read_text())
+                    print(f"✓ → {output_file} (backup: {orig_path.name})")
+                else:
+                    output_path.write_text(compressed)
+                    print(f"✓ → {output_file} (backup exists)")
 
         except Exception as e:
             print(f"✗ Error: {e}")
@@ -177,6 +189,13 @@ def main() -> None:
         "--batch",
         action="store_true",
         help="Batch mode: compress all .template.md files with dependency analysis"
+    )
+
+    parser.add_argument(
+        "-i", "--in-place",
+        action="store_true",
+        dest="in_place",
+        help="In-place: replace original files (default: backup as .orig, write compressed as original name)"
     )
 
     parser.add_argument("input", nargs="?", help="Input file or directory (default: stdin)")
@@ -277,6 +296,7 @@ def main() -> None:
                 threshold=args.threshold,
                 agent=args.agent,
                 model=args.model,
+                in_place=args.in_place,
             )
         except Exception as e:
             print(f"\n✗ Failed: {e}")
@@ -299,7 +319,9 @@ def main() -> None:
     # Stage 1: caveman LLM rewrite
     if args.caveman:
         from ._caveman import caveman_compress
-        content = caveman_compress(content, level=args.caveman, agent=args.agent, model=args.model)
+        content = caveman_compress(
+            content, level=args.caveman, agent=args.agent, model=args.model
+        )
 
     # Stage 2: Kompress ML token compression
     if not args.no_kompress:
@@ -308,8 +330,18 @@ def main() -> None:
 
     # Write output
     if args.output:
-        with open(args.output, "w", encoding="utf-8") as f:
-            f.write(content)
+        output_path = Path(args.output)
+        if args.in_place:
+            output_path.write_text(content)
+        else:
+            orig_path = output_path.with_suffix(".orig")
+            if not orig_path.exists():
+                with open(args.input, encoding="utf-8") as f:
+                    orig_path.write_text(f.read())
+            output_path.write_text(content)
+    elif args.input and args.in_place:
+        input_path = Path(args.input)
+        input_path.write_text(content)
     else:
         sys.stdout.write(content)
 

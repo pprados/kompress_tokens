@@ -71,9 +71,14 @@ Force a specific backend: `--agent=anthropic` / `--agent=claude` / etc.
 
 ## CLI
 
+### Single file mode
+
 ```bash
-# Kompress only (default)
+# Kompress only (default) → writes output.md, backups input to output.orig
 kompress_tokens input.md output.md
+
+# In-place replacement (overwrites input file)
+kompress_tokens -i input.md
 
 # Caveman only — auto-detect backend
 kompress_tokens --caveman full --no-kompress input.md output.md
@@ -82,7 +87,7 @@ kompress_tokens --caveman full --no-kompress input.md output.md
 kompress_tokens --caveman ultra input.md output.md
 
 # Force Anthropic API, specific model
-kompress_tokens --caveman full --agent=anthropic --model=claude-opus-4-8 input.md
+kompress_tokens --caveman full --agent=anthropic --model=claude-opus-4-8 input.md output.md
 
 # Force OpenAI API
 kompress_tokens --caveman lite --agent=openai input.md output.md
@@ -93,6 +98,37 @@ cat input.md | kompress_tokens --caveman full > output.md
 # Adjust kompress aggressiveness
 kompress_tokens --threshold 0.3 input.md output.md
 ```
+
+### Batch mode (--batch)
+
+```bash
+# Compress all .template.md files in config/
+# Default: creates .md files, backups originals as .template.md.orig
+kompress_tokens --batch config/ --caveman ultra
+
+# In-place: replaces .template.md files directly
+kompress_tokens --batch config/ --caveman ultra -i
+
+# With Jinja2 rendering
+kompress_tokens --batch config/ --jinja --caveman full
+
+# Output to different directory (keeps structure, saves .orig backups)
+kompress_tokens --batch config/ output_dir/ --caveman ultra
+```
+
+### Output modes explained
+
+**Default (without `-i`):**
+- Input: `config/SKILL.md` or `config/template.template.md`
+- Output: `config/SKILL.md` (for .md) or `config/template.md` (for .template.md)
+- Backup: `config/SKILL.orig` or `config/template.md.orig`
+- Safe for recovery: original always preserved
+
+**In-place mode (`-i`):**
+- Input: `config/SKILL.md` → directly overwritten
+- No backup created
+- Faster, suitable for scripted workflows
+- Use with caution: original file is lost
 
 ### Caveman levels (from https://github.com/JuliusBrussee/caveman)
 
