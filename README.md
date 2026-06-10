@@ -48,6 +48,32 @@ result = compress_template("AGENTS.template.md", level="ultra")
 kompress_tokens --batch config/ --jinja
 ```
 
+## Example: Compress Claude Code Skills
+
+Reduce token usage when injecting skills into Claude Code by compressing all SKILL.md files recursively:
+
+```bash
+# Compress all .md files in skills directory (preserves structure)
+kompress_tokens --batch ~/.claude/skills -r --caveman full
+
+# In-place replacement (no backups)
+kompress_tokens --batch ~/.claude/skills -r --caveman full -i
+
+# With dependency tracking and Jinja2 support
+kompress_tokens --batch ~/.claude/skills -r --caveman ultra --jinja
+```
+
+**Result:** All SKILL.md files compressed in-place with .orig backups (or -i flag for direct replacement):
+```
+~/.claude/skills/
+├── graphify/
+│   ├── SKILL.md          (compressed, ~40% smaller)
+│   └── SKILL.md.orig     (original backup)
+└── codebase-memory/
+    ├── SKILL.md          (compressed, ~40% smaller)
+    └── SKILL.md.orig     (original backup)
+```
+
 ## Install
 
 ```bash

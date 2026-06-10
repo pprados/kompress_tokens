@@ -85,6 +85,7 @@ def process_batch(
     agent: str = "auto",
     model: str = None,
     in_place: bool = False,
+    recursive: bool = False,
 ) -> None:
     """Process templates in batch with dependency analysis."""
     from ._dependencies import build_dependency_graph, topological_sort, inject_dependencies
@@ -93,7 +94,10 @@ def process_batch(
         jinja_vars = {}
 
     # Find all template files
-    template_files = sorted([f.name for f in config_dir.glob('*.template.md')])
+    glob_pattern = '**/*.template.md' if recursive else '*.template.md'
+    template_files = sorted([
+        str(f.relative_to(config_dir)) for f in config_dir.glob(glob_pattern)
+    ])
 
     if not template_files:
         print(f"No .template.md files found in {config_dir}")
@@ -198,6 +202,13 @@ def main() -> None:
         help="In-place: replace original files (default: backup as .orig, write compressed as original name)"
     )
 
+    parser.add_argument(
+        "-r", "--recursive",
+        action="store_true",
+        dest="recursive",
+        help="Batch mode: search for .template.md files recursively (default: only root level)"
+    )
+
     parser.add_argument("input", nargs="?", help="Input file or directory (default: stdin)")
     parser.add_argument("output", nargs="?", help="Output file or directory (default: stdout/input dir)")
 
@@ -297,6 +308,7 @@ def main() -> None:
                 agent=args.agent,
                 model=args.model,
                 in_place=args.in_place,
+                recursive=args.recursive,
             )
         except Exception as e:
             print(f"\n✗ Failed: {e}")
