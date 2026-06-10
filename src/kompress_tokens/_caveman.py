@@ -17,7 +17,7 @@ import shutil
 import subprocess
 from typing import Literal
 
-LEVELS = ("lite", "full", "ultra", "wenyan-lite", "wenyan-full", "wenyan-ultra")
+LEVELS = ("lite", "full", "ultra")
 AGENTS = ("auto", "anthropic", "openai", "claude", "codex", "gemini")
 Agent = Literal["auto", "anthropic", "openai", "claude", "codex", "gemini"]
 
@@ -56,21 +56,6 @@ _LEVEL_RULES: dict[str, str] = {
         "Abbreviations and contractions OK. Arrows for causality (->).\n"
         "Single words or short phrases for ideas. Minimal punctuation.\n"
         "Target: ~75%+ token reduction."
-    ),
-    "wenyan-lite": (
-        "Compression level: wenyan-lite.\n"
-        "Rewrite in semi-classical Chinese (wenyan). Drop filler words.\n"
-        "Maintain readability for Chinese speakers.\n"
-        "Target: ~40-50% character reduction."
-    ),
-    "wenyan-full": (
-        "Compression level: wenyan-full.\n"
-        "Rewrite in full classical Chinese (wenyan).\n"
-        "Target: ~80-90% character reduction."
-    ),
-    "wenyan-ultra": (
-        "Compression level: wenyan-ultra.\n"
-        "Maximum classical Chinese. Extreme compression."
     ),
 }
 
@@ -201,7 +186,7 @@ def caveman_compress(
 
     Args:
         content: Text to compress.
-        level:   lite / full / ultra / wenyan-lite / wenyan-full / wenyan-ultra
+        level:   lite / full / ultra
         agent:   auto | anthropic | openai | claude | codex | gemini
                  'auto' tries available backends in priority order with fallback.
         model:   Override default model (anthropic/openai backends only).

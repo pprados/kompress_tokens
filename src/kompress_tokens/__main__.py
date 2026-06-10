@@ -6,7 +6,7 @@ Usage:
 
 Strategies (applied in order when both selected):
   0. jinja   -- Jinja2 template rendering (opt-in)
-  1. caveman -- LLM rewrite (lite/full/ultra/wenyan-*)
+  1. caveman -- LLM rewrite (lite/full/ultra)
   2. kompress -- Kompress ONNX INT8 ML compression (CPU)
 
 Batch mode:
