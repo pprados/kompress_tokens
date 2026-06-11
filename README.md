@@ -4,7 +4,7 @@ Compress Claude Code config files (AGENTS.md, CLAUDE.md, skills, etc.) to reduce
 
 ## Purpose
 
-Large CLAUDE.md or AGENTS.md files consume tokens inefficiently. kompress-tokens applies aggressive compression while preserving structure and semantics, typically achieving 60-75% token reduction. Output remains semantically valid for injection into `CLAUDE.md` or tools.
+Large `CLAUDE.md` or `AGENTS.md` files consume tokens inefficiently. kompress-tokens applies aggressive compression while preserving structure and semantics, typically achieving 60-75% token reduction. Output remains semantically valid for injection into `CLAUDE.md` or tools.
 
 ## Compression Strategies
 
@@ -26,7 +26,7 @@ Compose large config files from modular pieces using Jinja2 includes, then compr
 ```markdown
 {% include 'thinking_rules.md' %}
 {% include 'workflow.md' %}
-{% include 'rtk_guide.md' %}
+{% include 'rtk.md' %}
 ```
 
 **thinking_rules.md, workflow.md, rtk_guide.md** (modular config pieces)
@@ -35,13 +35,9 @@ Compose large config files from modular pieces using Jinja2 includes, then compr
 ```bash
 # Render Jinja2 + apply caveman ultra compression + kompress
 kompress_tokens --jinja AGENTS.template.md AGENTS.md
-
-# Or via Python API
-from kompress_tokens import compress_template
-result = compress_template("AGENTS.template.md", level="ultra")
 ```
 
-**Result:** AGENTS.md with all includes merged and compressed to ~60-75% of original size.
+**Result:** `AGENTS.md` with all includes merged and compressed to ~60-75% of original size.
 
 **Batch mode** (compress all *.template.md in directory):
 ```bash
@@ -63,7 +59,7 @@ kompress_tokens --batch ~/.claude/skills -r --caveman full -i
 kompress_tokens --batch ~/.claude/skills -r --caveman ultra --jinja
 ```
 
-**Result:** All SKILL.md files compressed in-place with .orig backups (or -i flag for direct replacement):
+**Result:** All `SKILL.md` files compressed in-place with .orig backups (or -i flag for direct replacement):
 ```
 ~/.claude/skills/
 ├── graphify/

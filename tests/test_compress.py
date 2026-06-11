@@ -84,8 +84,8 @@ The compression should preserve the structure and reduce token usage."""
 class TestBatchMode:
     """Test batch mode processing."""
 
-    def test_batch_default_creates_backup(self):
-        """Test batch mode creates .orig backups by default."""
+    def test_batch_produces_md_no_backup(self):
+        """Test batch mode produces .md without backup."""
         with tempfile.TemporaryDirectory() as tmpdir:
             config_dir = Path(tmpdir)
 
@@ -93,7 +93,7 @@ class TestBatchMode:
             template_file = config_dir / "test.template.md"
             template_file.write_text("# Test\n\nContent to compress.")
 
-            # Process batch without in-place
+            # Process batch
             process_batch(
                 config_dir=config_dir,
                 output_dir=config_dir,
@@ -104,49 +104,14 @@ class TestBatchMode:
                 threshold=0.5,
                 agent="auto",
                 model=None,
-                in_place=False,  # Default mode
             )
 
-            # Check outputs
+            # Check outputs: only .md produced, no backup
             compressed_file = config_dir / "test.md"
             backup_file = config_dir / "test.md.orig"
 
             assert compressed_file.exists(), "Compressed file not created"
-            assert backup_file.exists(), "Backup file not created"
-            assert backup_file.read_text() == "# Test\n\nContent to compress."
-
-    def test_batch_in_place_no_backup(self):
-        """Test batch mode with -i flag (no backup)."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            config_dir = Path(tmpdir)
-
-            # Create a template file
-            template_file = config_dir / "test.template.md"
-            original_content = "# Test\n\nContent to compress."
-            template_file.write_text(original_content)
-
-            # Process batch with in-place
-            process_batch(
-                config_dir=config_dir,
-                output_dir=config_dir,
-                caveman_level=None,
-                use_jinja=False,
-                jinja_vars={},
-                no_kompress=True,
-                threshold=0.5,
-                agent="auto",
-                model=None,
-                in_place=True,  # In-place mode
-            )
-
-            # Check that template.md is replaced, no backup created
-            assert template_file.exists(), "Original template file removed"
-            # Note: With no-kompress and no caveman, content should be unchanged
-            assert template_file.read_text() == original_content
-
-            # Check no .md or .orig files created
-            assert not (config_dir / "test.md").exists()
-            assert not (config_dir / "test.md.orig").exists()
+            assert not backup_file.exists(), "Backup file should not be created"
 
     def test_batch_multiple_files(self):
         """Test batch mode with multiple template files."""
@@ -167,14 +132,13 @@ class TestBatchMode:
                 threshold=0.5,
                 agent="auto",
                 model=None,
-                in_place=False,
             )
 
-            # Check all outputs created
+            # Check all outputs created (no backups)
             assert (config_dir / "a.md").exists()
-            assert (config_dir / "a.md.orig").exists()
+            assert not (config_dir / "a.md.orig").exists()
             assert (config_dir / "b.md").exists()
-            assert (config_dir / "b.md.orig").exists()
+            assert not (config_dir / "b.md.orig").exists()
 
     def test_batch_empty_directory(self):
         """Test batch mode with no template files."""
@@ -192,7 +156,6 @@ class TestBatchMode:
                 threshold=0.5,
                 agent="auto",
                 model=None,
-                in_place=False,
             )
 
             # Directory should remain empty

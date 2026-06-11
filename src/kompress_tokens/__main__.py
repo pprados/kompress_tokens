@@ -24,7 +24,7 @@ import sys
 from pathlib import Path
 
 
-def render_jinja(content: str, template_file: str, jinja_vars: dict = None) -> str:
+def render_jinja(content: str, template_file: str, jinja_vars: dict | None = None) -> str:
     """Render Jinja2 template string or file."""
     if jinja_vars is None:
         jinja_vars = {}
@@ -43,13 +43,13 @@ def render_jinja(content: str, template_file: str, jinja_vars: dict = None) -> s
 
 def compress_single_file(
     path: Path,
-    caveman_level: str = None,
+    caveman_level: str | None = None,
     use_jinja: bool = False,
-    jinja_vars: dict = None,
+    jinja_vars: dict | None = None,
     no_kompress: bool = False,
     threshold: float = 0.5,
     agent: str = "auto",
-    model: str = None,
+    model: str | None = None,
 ) -> str:
     """Compress a single file."""
     if jinja_vars is None:
@@ -77,14 +77,13 @@ def compress_single_file(
 def process_batch(
     config_dir: Path,
     output_dir: Path,
-    caveman_level: str = None,
+    caveman_level: str | None = None,
     use_jinja: bool = False,
-    jinja_vars: dict = None,
+    jinja_vars: dict | None = None,
     no_kompress: bool = False,
     threshold: float = 0.5,
     agent: str = "auto",
-    model: str = None,
-    in_place: bool = False,
+    model: str | None = None,
     recursive: bool = False,
 ) -> None:
     """Process templates in batch with dependency analysis."""
@@ -152,23 +151,12 @@ def process_batch(
             compressed_cache[template_file] = compressed
             results[template_file] = compressed
 
-            # Write output
-            if in_place:
-                # In-place: replace original template with compressed version
-                path.write_text(compressed)
-                print(f"✓ {template_file} (in-place)")
-            else:
-                # Default: backup original as .orig, write compressed as .md
-                output_file = template_file.replace('.template.md', '.md')
-                output_path = output_dir / output_file
-                orig_path = output_path.with_suffix('.md.orig')
-                if not orig_path.exists():
-                    output_path.write_text(compressed)
-                    orig_path.write_text(path.read_text())
-                    print(f"✓ → {output_file} (backup: {orig_path.name})")
-                else:
-                    output_path.write_text(compressed)
-                    print(f"✓ → {output_file} (backup exists)")
+            # Write output: .template.md → .md (no backup)
+            output_file = template_file.replace('.template.md', '.md')
+            output_path = output_dir / output_file
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text(compressed)
+            print(f"✓ → {output_file}")
 
         except Exception as e:
             print(f"✗ Error: {e}")
@@ -199,7 +187,7 @@ def main() -> None:
         "-i", "--in-place",
         action="store_true",
         dest="in_place",
-        help="In-place: replace original files (default: backup as .orig, write compressed as original name)"
+        help="In-place: replace original files (single-file mode only; ignored in batch mode)"
     )
 
     parser.add_argument(
@@ -307,7 +295,6 @@ def main() -> None:
                 threshold=args.threshold,
                 agent=args.agent,
                 model=args.model,
-                in_place=args.in_place,
                 recursive=args.recursive,
             )
         except Exception as e:
