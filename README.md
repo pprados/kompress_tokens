@@ -29,7 +29,7 @@ Compose large config files from modular pieces using Jinja2 includes, then compr
 {% include 'rtk.md' %}
 ```
 
-**thinking_rules.md, workflow.md, rtk_guide.md** (modular config pieces)
+**thinking_rules.md, workflow.md, rtk.md** (modular config pieces)
 
 **Compression command:**
 ```bash
